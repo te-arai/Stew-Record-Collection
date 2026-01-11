@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import math
+import html
 
 
 def show_table(df: pd.DataFrame):
@@ -54,10 +55,21 @@ def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
     - Accent colour strip
     - Soft background
     - Hover-lift animation (CSS class: record-card)
+    - HTML escaping for all text fields
     """
+
+    # Escape all text to prevent HTML breakage
+    artist = html.escape(str(artist))
+    title = html.escape(str(title))
+    format_ = html.escape(str(format_))
+    genre = html.escape(str(genre))
+    year = html.escape(str(year))
+    label = html.escape(str(label))
+    rating = html.escape(str(rating))
+
     rating_str = (
         f"<div style='margin-top:6px; font-size:0.9em; color:#e67e22;'>Rating: {rating}</div>"
-        if rating not in ("", None)
+        if rating not in ("", None, "nan")
         else ""
     )
 
