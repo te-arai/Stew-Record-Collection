@@ -1,14 +1,16 @@
 import pandas as pd
+import os
+import streamlit as st
 
-def apply_search(df: pd.DataFrame, query: str) -> pd.DataFrame:
-    if not query:
+def load_collection(path: str) -> pd.DataFrame:
+    if not os.path.exists(path):
+        st.error(f"❌ Could not find the file: `{path}`")
+        st.stop()
+
+    try:
+        df = pd.read_excel(path)
+        df.columns = df.columns.str.strip()
         return df
-
-    query = query.lower()
-
-    mask = df.apply(
-        lambda row: row.astype(str).str.lower().str.contains(query).any(),
-        axis=1
-    )
-
-    return df[mask]
+    except Exception as e:
+        st.error(f"❌ Error loading Excel file: {e}")
+        st.stop()
