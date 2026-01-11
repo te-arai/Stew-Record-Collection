@@ -30,7 +30,7 @@ artist_filter = st.sidebar.selectbox("Artist", artists)
 formats = ["All Formats"] + sorted(df["Format"].dropna().unique().tolist())
 format_filter = st.sidebar.selectbox("Format", formats)
 
-genres = ["All Genres"] + sorted(df["Genre"].dropna().unique().unique().tolist())
+genres = ["All Genres"] + sorted(df["Genre"].dropna().unique().tolist())
 genre_filter = st.sidebar.selectbox("Genre", genres)
 
 years = sorted(df["Released"].dropna().unique().tolist())
