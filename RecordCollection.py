@@ -12,6 +12,20 @@ st.set_page_config(
     layout="wide",
 )
 
+# Inject global CSS for hover effects
+st.markdown("""
+<style>
+.record-card {
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.record-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+</style>
+""", unsafe_allow_html=True)
+
+
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "record_collection.xlsx")
 df = load_collection(DATA_PATH)
 
