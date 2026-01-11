@@ -15,12 +15,8 @@ def show_cards(df: pd.DataFrame):
     """
     Display records as responsive cards in a grid layout.
     """
-    # Decide how many cards per row; tweak if you like
     cards_per_row = 3
-
-    # Reset index for safe iteration
     df = df.reset_index(drop=True)
-
     n_rows = math.ceil(len(df) / cards_per_row)
 
     for row_idx in range(n_rows):
@@ -33,24 +29,16 @@ def show_cards(df: pd.DataFrame):
 
             row = df.iloc[record_idx]
 
-            artist = row.get("Artist", "")
-            title = row.get("Title", "")
-            format_ = row.get("Format", "")
-            genre = row.get("Genre", "")
-            year = row.get("Released", "")
-            label = row.get("Label", "")
-            rating = row.get("Rating", "")
-
             with cols[col_idx]:
                 st.markdown(
                     _build_card_html(
-                        artist=artist,
-                        title=title,
-                        format_=format_,
-                        genre=genre,
-                        year=year,
-                        label=label,
-                        rating=rating,
+                        artist=row.get("Artist", ""),
+                        title=row.get("Title", ""),
+                        format_=row.get("Format", ""),
+                        genre=row.get("Genre", ""),
+                        year=row.get("Released", ""),
+                        label=row.get("Label", ""),
+                        rating=row.get("Rating", ""),
                     ),
                     unsafe_allow_html=True,
                 )
@@ -58,22 +46,26 @@ def show_cards(df: pd.DataFrame):
 
 def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
     """
-    Build a small HTML/CSS card for a single record.
+    Build a modern card with a coloured accent strip.
     """
-    # Optional rating display
-    rating_str = f"<div style='margin-top:4px; font-size:0.9em; color:#f39c12;'>Rating: {rating}</div>" if rating not in ("", None) else ""
+    rating_str = (
+        f"<div style='margin-top:6px; font-size:0.9em; color:#e67e22;'>Rating: {rating}</div>"
+        if rating not in ("", None)
+        else ""
+    )
 
     return f"""
     <div style="
         border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 12px 12px 10px 12px;
-        margin-bottom: 16px;
-        background-color: #fafafa;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-        min-height: 120px;
+        border-left: 6px solid #e67e22;
+        border-radius: 6px;
+        padding: 14px;
+        margin-bottom: 18px;
+        background-color: #fff8f0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        min-height: 130px;
     ">
-        <div style="font-weight: 600; font-size: 1.05em; margin-bottom: 4px;">
+        <div style="font-weight: 600; font-size: 1.1em; margin-bottom: 4px;">
             {artist}
         </div>
         <div style="font-weight: 500; margin-bottom: 6px;">
@@ -82,7 +74,7 @@ def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
         <div style="font-size: 0.9em; color: #555;">
             {format_} • {genre} • {year}
         </div>
-        <div style="font-size: 0.9em; color: #777; margin-top: 4px;">
+        <div style="font-size: 0.85em; color: #777; margin-top: 4px;">
             {label}
         </div>
         {rating_str}
