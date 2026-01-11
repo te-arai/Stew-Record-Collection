@@ -1,42 +1,102 @@
 import streamlit as st
 import pandas as pd
+import os
+
 from src.data_loader import load_collection
 from src.search import apply_search
-from src.display import show_table
+from src.display import show_table, show_cards
 
 
-# -----------------------------
-# Streamlit Page Configuration
-# -----------------------------
 st.set_page_config(
     page_title="My Vinyl Collection",
     layout="wide",
 )
 
+# Inject global CSS for hover effects
+st.markdown("""
+<style>
+.record-card {
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.record-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+</style>
+""", unsafe_allow_html=True)
 
-# -----------------------------
-# Load Dataset
-# -----------------------------
-df = load_collection("data/record_collection.xlsx")
+
+DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "record_collection.xlsx")
+df = load_collection(DATA_PATH)
 
 st.title("🎵 My Vinyl Record Collection")
-st.markdown("Search, browse, and explore your entire vinyl library.")
+st.markdown("Search, filter, and explore your entire vinyl library.")
 
 
 # -----------------------------
-# Global Search Bar
+# Sidebar Filters
+# -----------------------------
+st.sidebar.header("Filters")
+
+artists = ["All Artists"] + sorted(df["Artist"].dropna().unique().tolist())
+artist_filter = st.sidebar.selectbox("Artist", artists)
+
+formats = ["All Formats"] + sorted(df["Format"].dropna().unique().tolist())
+format_filter = st.sidebar.selectbox("Format", formats)
+
+genres = ["All Genres"] + sorted(df["Genre"].dropna().unique().tolist())
+genre_filter = st.sidebar.selectbox("Genre", genres)
+
+years = sorted(df["Released"].dropna().unique().tolist())
+year_filter = st.sidebar.multiselect("Year", years, default=[])
+
+
+# -----------------------------
+# Apply Filters
+# -----------------------------
+filtered_df = df.copy()
+
+if artist_filter != "All Artists":
+    filtered_df = filtered_df[filtered_df["Artist"] == artist_filter]
+
+if format_filter != "All Formats":
+    filtered_df = filtered_df[filtered_df["Format"] == format_filter]
+
+if genre_filter != "All Genres":
+    filtered_df = filtered_df[filtered_df["Genre"] == genre_filter]
+
+if year_filter:
+    filtered_df = filtered_df[filtered_df["Released"].isin(year_filter)]
+
+
+# -----------------------------
+# Search
 # -----------------------------
 search_query = st.text_input(
     "Search your collection",
-    placeholder="Try: 'Benson', '1983', '12\" Single', 'Electronic', 'CBS'..."
+    placeholder="Try: 'ABC', 'albums by ABC', '1983 electronic', '12 inch singles'..."
 )
 
-filtered_df = apply_search(df, search_query)
+searched_df = apply_search(filtered_df, search_query)
 
 
 # -----------------------------
-# Display Table
+# View Mode
 # -----------------------------
-show_table(filtered_df)
+view_mode = st.radio(
+    "View mode",
+    options=["Table", "Card"],
+    horizontal=True,
+)
 
 
+# -----------------------------
+# Display
+# -----------------------------
+if searched_df.empty:
+    st.info("No records match your current filters/search.")
+else:
+    if view_mode == "Table":
+        show_table(searched_df)
+    else:
+        show_cards(searched_df)
