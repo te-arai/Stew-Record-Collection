@@ -4,6 +4,9 @@ import math
 
 
 def show_table(df: pd.DataFrame):
+    """
+    Display the dataframe in a clean, wide table.
+    """
     st.dataframe(
         df,
         use_container_width=True,
@@ -14,6 +17,7 @@ def show_table(df: pd.DataFrame):
 def show_cards(df: pd.DataFrame):
     """
     Display records as responsive cards in a grid layout.
+    Cards use a coloured accent strip and support hover-lift animation.
     """
     cards_per_row = 3
     df = df.reset_index(drop=True)
@@ -46,7 +50,10 @@ def show_cards(df: pd.DataFrame):
 
 def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
     """
-    Build a modern card with a coloured accent strip.
+    Build a modern card with:
+    - Accent colour strip
+    - Soft background
+    - Hover-lift animation (CSS class: record-card)
     """
     rating_str = (
         f"<div style='margin-top:6px; font-size:0.9em; color:#e67e22;'>Rating: {rating}</div>"
@@ -55,7 +62,7 @@ def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
     )
 
     return f"""
-    <div style="
+    <div class="record-card" style="
         border: 1px solid #ddd;
         border-left: 6px solid #e67e22;
         border-radius: 6px;
@@ -68,15 +75,19 @@ def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
         <div style="font-weight: 600; font-size: 1.1em; margin-bottom: 4px;">
             {artist}
         </div>
+
         <div style="font-weight: 500; margin-bottom: 6px;">
             {title}
         </div>
+
         <div style="font-size: 0.9em; color: #555;">
             {format_} • {genre} • {year}
         </div>
+
         <div style="font-size: 0.85em; color: #777; margin-top: 4px;">
             {label}
         </div>
+
         {rating_str}
     </div>
     """
