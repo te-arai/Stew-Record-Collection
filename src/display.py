@@ -50,15 +50,9 @@ def show_cards(df: pd.DataFrame):
 
 
 def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
-    """
-    Build a modern card with:
-    - Accent colour strip
-    - Soft background
-    - Hover-lift animation (CSS class: record-card)
-    - HTML escaping for all text fields
-    """
+    import html
 
-    # Escape all text to prevent HTML breakage
+    # Escape text
     artist = html.escape(str(artist))
     title = html.escape(str(title))
     format_ = html.escape(str(format_))
@@ -73,33 +67,33 @@ def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
         else ""
     )
 
-    return f"""
-    <div class="record-card" style="
-        border: 1px solid #ddd;
-        border-left: 6px solid #e67e22;
-        border-radius: 6px;
-        padding: 14px;
-        margin-bottom: 18px;
-        background-color: #fff8f0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        min-height: 130px;
-    ">
-        <div style="font-weight: 600; font-size: 1.1em; margin-bottom: 4px;">
-            {artist}
-        </div>
+    # IMPORTANT: no indentation, no leading newline
+    return f"""<div class="record-card" style="
+border: 1px solid #ddd;
+border-left: 6px solid #e67e22;
+border-radius: 6px;
+padding: 14px;
+margin-bottom: 18px;
+background-color: #fff8f0;
+box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+min-height: 130px;
+">
+<div style="font-weight: 600; font-size: 1.1em; margin-bottom: 4px;">
+    {artist}
+</div>
 
-        <div style="font-weight: 500; margin-bottom: 6px;">
-            {title}
-        </div>
+<div style="font-weight: 500; margin-bottom: 6px;">
+    {title}
+</div>
 
-        <div style="font-size: 0.9em; color: #555;">
-            {format_} • {genre} • {year}
-        </div>
+<div style="font-size: 0.9em; color: #555;">
+    {format_} • {genre} • {year}
+</div>
 
-        <div style="font-size: 0.85em; color: #777; margin-top: 4px;">
-            {label}
-        </div>
+<div style="font-size: 0.85em; color: #777; margin-top: 4px;">
+    {label}
+</div>
 
-        {rating_str}
-    </div>
-    """
+{rating_str}
+</div>"""
+
