@@ -23,7 +23,47 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "record_collection.x
 df = load_collection(DATA_PATH)
 
 st.title("🎵 My Vinyl Record Collection")
-st.markdown("Search, browse, and explore your entire vinyl library.")
+st.markdown("Search, filter, and explore your entire vinyl library.")
+
+
+# -----------------------------
+# Sidebar Filters
+# -----------------------------
+st.sidebar.header("Filters")
+
+# Artist Filter
+artists = ["All Artists"] + sorted(df["Artist"].dropna().unique().tolist())
+artist_filter = st.sidebar.selectbox("Artist", artists)
+
+# Format Filter
+formats = ["All Formats"] + sorted(df["Format"].dropna().unique().tolist())
+format_filter = st.sidebar.selectbox("Format", formats)
+
+# Genre Filter
+genres = ["All Genres"] + sorted(df["Genre"].dropna().unique().tolist())
+genre_filter = st.sidebar.selectbox("Genre", genres)
+
+# Year Filter
+years = sorted(df["Released"].dropna().unique().tolist())
+year_filter = st.sidebar.multiselect("Year", years, default=[])
+
+
+# -----------------------------
+# Apply Filters
+# -----------------------------
+filtered_df = df.copy()
+
+if artist_filter != "All Artists":
+    filtered_df = filtered_df[filtered_df["Artist"] == artist_filter]
+
+if format_filter != "All Formats":
+    filtered_df = filtered_df[filtered_df["Format"] == format_filter]
+
+if genre_filter != "All Genres":
+    filtered_df = filtered_df[filtered_df["Genre"] == genre_filter]
+
+if year_filter:
+    filtered_df = filtered_df[filtered_df["Released"].isin(year_filter)]
 
 
 # -----------------------------
@@ -34,10 +74,10 @@ search_query = st.text_input(
     placeholder="Try: 'ABC', 'albums by ABC', '1983 electronic', '12 inch singles'..."
 )
 
-filtered_df = apply_search(df, search_query)
+searched_df = apply_search(filtered_df, search_query)
 
 
 # -----------------------------
 # Display Table
 # -----------------------------
-show_table(filtered_df)
+show_table(searched_df)
