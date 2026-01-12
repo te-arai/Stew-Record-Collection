@@ -4,8 +4,8 @@ import math
 import html
 import os
 import re
+import requests
 
-# DEBUG: confirm this file is actually being loaded
 print("DISPLAY.PY LOADED")
 
 
@@ -26,14 +26,12 @@ def normalise_filename(artist, title):
     return text
 
 
-def find_cover_image(artist, title):
+def find_cover_filename(artist, title):
     """
-    Instead of checking local disk, we assume the image exists
-    in the GitHub repo under assets/covers.
-    We return the expected filename so we can build a GitHub URL.
+    Return the expected filename for the cover image.
     """
-    filename = normalise_filename(artist, title)
-    return f"{filename}.jpg"  # You can add PNG/WebP support later if needed
+    base = normalise_filename(artist, title)
+    return f"{base}.jpg"
 
 
 # ---------------------------------------------------------
@@ -83,7 +81,7 @@ def show_cards(df: pd.DataFrame):
 
 
 # ---------------------------------------------------------
-# CARD HTML BUILDER (GITHUB IMAGE VERSION)
+# CARD HTML BUILDER (GITHUB + PLACEHOLDER)
 # ---------------------------------------------------------
 
 def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
@@ -94,6 +92,7 @@ def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
     - Hover-lift animation
     - HTML escaping
     - Cover art loaded from GitHub
+    - Placeholder fallback when image not found
     """
 
     # Escape text
@@ -105,16 +104,25 @@ def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
     label_esc = html.escape(str(label))
     rating_esc = html.escape(str(rating))
 
-    # Build GitHub raw URL
-    filename = find_cover_image(artist, title)
-    github_url = f"https://raw.githubusercontent.com/te-arai/Stew-Record-Collection/main/assets/covers/{filename}"
+    # Build GitHub URLs
+    filename = find_cover_filename(artist, title)
 
-    # DEBUG: print the URL being used
-    print("DEBUG GITHUB URL:", github_url)
+    base_url = "https://raw.githubusercontent.com/te-arai/Stew-Record-Collection/main/assets/covers"
+    cover_url = f"{base_url}/{filename}"
+    placeholder_url = f"{base_url}/placeholder.jpg"
 
-    # Try loading the image
+    # Check if the real image exists
+    try:
+        response = requests.head(cover_url)
+        if response.status_code != 200:
+            cover_url = placeholder_url
+    except Exception:
+        cover_url = placeholder_url
+
+    print("DEBUG IMAGE URL:", cover_url)
+
     cover_html = f"""
-<img src="{github_url}" style="
+<img src="{cover_url}" style="
     width: 100%;
     border-radius: 6px;
     margin-bottom: 10px;
