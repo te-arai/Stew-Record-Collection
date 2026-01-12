@@ -5,6 +5,9 @@ import html
 import os
 import re
 
+# DEBUG: confirm this file is actually being loaded
+print("DISPLAY.PY LOADED")
+
 
 # ---------------------------------------------------------
 # COVER ART HELPERS
@@ -97,7 +100,7 @@ def show_cards(df: pd.DataFrame):
 
 
 # ---------------------------------------------------------
-# CARD HTML BUILDER (WITH COVER ART)
+# CARD HTML BUILDER (WITH COVER ART + DEBUG)
 # ---------------------------------------------------------
 
 def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
@@ -121,11 +124,18 @@ def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
 
     # Try to find cover art
     cover_path = find_cover_image(artist, title)
-    # DEBUG — print the resolved path to your terminal print("DEBUG COVER PATH:", cover_path)
+
+    # DEBUG: print the resolved path to the terminal
+    print("DEBUG COVER PATH:", cover_path)
+
     cover_html = ""
     if cover_path:
+        # Convert Windows path → browser-safe URL
+        cover_url = cover_path.replace("\\", "/")
+        cover_url = f"file:///{cover_url}"
+
         cover_html = f"""
-<img src="file://{cover_path}" style="
+<img src="{cover_url}" style="
     width: 100%;
     border-radius: 6px;
     margin-bottom: 10px;
