@@ -26,10 +26,14 @@ def normalise_filename(artist, title):
 def find_cover_image(artist, title, base_path="assets/covers"):
     """
     Look for a matching cover image in the assets/covers directory.
+    Converts to an absolute path so Streamlit can load it reliably.
     Supports jpg, jpeg, png, webp.
-    Returns a file path or None.
+    Returns an absolute file path or None.
     """
     base = normalise_filename(artist, title)
+
+    # Convert to absolute path
+    base_path = os.path.abspath(base_path)
 
     for ext in ["jpg", "jpeg", "png", "webp"]:
         path = os.path.join(base_path, f"{base}.{ext}")
