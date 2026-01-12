@@ -18,42 +18,22 @@ def normalise_filename(artist, title):
     Convert artist + title into a safe, predictable filename.
     Handles extra spaces, unicode spaces, punctuation, etc.
     """
-    # Convert to string and lowercase
     text = f"{artist}_{title}".lower()
-
-    # Replace all whitespace (including non-breaking) with a space
     text = re.sub(r"\s+", " ", text)
-
-    # Strip leading/trailing spaces
     text = text.strip()
-
-    # Replace non-alphanumeric with underscores
     text = re.sub(r"[^a-z0-9]+", "_", text)
-
-    # Collapse multiple underscores
     text = re.sub(r"_+", "_", text)
-
     return text
 
 
-def find_cover_image(artist, title, base_path="assets/covers"):
+def find_cover_image(artist, title):
     """
-    Look for a matching cover image in the assets/covers directory.
-    Converts to an absolute path so Streamlit can load it reliably.
-    Supports jpg, jpeg, png, webp.
-    Returns an absolute file path or None.
+    Instead of checking local disk, we assume the image exists
+    in the GitHub repo under assets/covers.
+    We return the expected filename so we can build a GitHub URL.
     """
-    base = normalise_filename(artist, title)
-
-    # Convert to absolute path
-    base_path = os.path.abspath(base_path)
-
-    for ext in ["jpg", "jpeg", "png", "webp"]:
-        path = os.path.join(base_path, f"{base}.{ext}")
-        if os.path.exists(path):
-            return path
-
-    return None
+    filename = normalise_filename(artist, title)
+    return f"{filename}.jpg"  # You can add PNG/WebP support later if needed
 
 
 # ---------------------------------------------------------
@@ -61,12 +41,9 @@ def find_cover_image(artist, title, base_path="assets/covers"):
 # ---------------------------------------------------------
 
 def show_table(df: pd.DataFrame):
-    """
-    Display the dataframe in a clean, wide table.
-    """
     st.dataframe(
         df,
-        use_container_width=True,
+        width="stretch",
         hide_index=True
     )
 
@@ -76,10 +53,6 @@ def show_table(df: pd.DataFrame):
 # ---------------------------------------------------------
 
 def show_cards(df: pd.DataFrame):
-    """
-    Display records as responsive cards in a grid layout.
-    Cards use a coloured accent strip and support hover-lift animation.
-    """
     cards_per_row = 3
     df = df.reset_index(drop=True)
     n_rows = math.ceil(len(df) / cards_per_row)
@@ -110,7 +83,7 @@ def show_cards(df: pd.DataFrame):
 
 
 # ---------------------------------------------------------
-# CARD HTML BUILDER (WITH COVER ART + DEBUG)
+# CARD HTML BUILDER (GITHUB IMAGE VERSION)
 # ---------------------------------------------------------
 
 def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
@@ -118,9 +91,9 @@ def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
     Build a modern card with:
     - Accent colour strip
     - Soft background
-    - Hover-lift animation (CSS class: record-card)
-    - HTML escaping for all text fields
-    - Optional cover art if available
+    - Hover-lift animation
+    - HTML escaping
+    - Cover art loaded from GitHub
     """
 
     # Escape text
@@ -132,25 +105,16 @@ def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
     label_esc = html.escape(str(label))
     rating_esc = html.escape(str(rating))
 
-    # Try to find cover art
-    cover_path = find_cover_image(artist, title)
+    # Build GitHub raw URL
+    filename = find_cover_image(artist, title)
+    github_url = f"https://raw.githubusercontent.com/te-arai/Stew-Record-Collection/main/assets/covers/{filename}"
 
-    # DEBUG: print the resolved path to the terminal
-    print("DEBUG COVER PATH:", cover_path)
+    # DEBUG: print the URL being used
+    print("DEBUG GITHUB URL:", github_url)
 
-    cover_html = ""
-    if cover_path:
-        # Convert Windows path → browser-safe URL
-        cover_url = cover_path.replace("\\", "/")
-
-        # Ensure correct file:/// prefix
-        if not cover_url.startswith("/"):
-            cover_url = "/" + cover_url
-
-        cover_url = f"file://{cover_url}"
-
-        cover_html = f"""
-<img src="{cover_url}" style="
+    # Try loading the image
+    cover_html = f"""
+<img src="{github_url}" style="
     width: 100%;
     border-radius: 6px;
     margin-bottom: 10px;
@@ -163,7 +127,6 @@ def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
         else ""
     )
 
-    # IMPORTANT: no indentation, no leading newline
     return f"""<div class="record-card" style="
 border: 1px solid #ddd;
 border-left: 6px solid #e67e22;
@@ -178,21 +141,3 @@ min-height: 130px;
 {cover_html}
 
 <div style="font-weight: 600; font-size: 1.1em; margin-bottom: 4px;">
-    {artist_esc}
-</div>
-
-<div style="font-weight: 500; margin-bottom: 6px;">
-    {title_esc}
-</div>
-
-<div style="font-size: 0.9em; color: #555;">
-    {format_esc} • {genre_esc} • {year_esc}
-</div>
-
-<div style="font-size: 0.85em; color: #777; margin-top: 4px;">
-    {label_esc}
-</div>
-
-{rating_str}
-
-</div>"""
