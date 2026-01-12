@@ -16,13 +16,23 @@ print("DISPLAY.PY LOADED")
 def normalise_filename(artist, title):
     """
     Convert artist + title into a safe, predictable filename.
-    Example:
-        "A Flock Of Seagulls", "Telecommunication"
-        → "a_flock_of_seagulls_telecommunication"
+    Handles extra spaces, unicode spaces, punctuation, etc.
     """
+    # Convert to string and lowercase
     text = f"{artist}_{title}".lower()
-    text = re.sub(r"[^a-z0-9]+", "_", text)   # replace non-alphanumerics
-    text = re.sub(r"_+", "_", text).strip("_")  # collapse underscores
+
+    # Replace all whitespace (including non-breaking) with a space
+    text = re.sub(r"\s+", " ", text)
+
+    # Strip leading/trailing spaces
+    text = text.strip()
+
+    # Replace non-alphanumeric with underscores
+    text = re.sub(r"[^a-z0-9]+", "_", text)
+
+    # Collapse multiple underscores
+    text = re.sub(r"_+", "_", text)
+
     return text
 
 
@@ -132,7 +142,12 @@ def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
     if cover_path:
         # Convert Windows path → browser-safe URL
         cover_url = cover_path.replace("\\", "/")
-        cover_url = f"file:///{cover_url}"
+
+        # Ensure correct file:/// prefix
+        if not cover_url.startswith("/"):
+            cover_url = "/" + cover_url
+
+        cover_url = f"file://{cover_url}"
 
         cover_html = f"""
 <img src="{cover_url}" style="
