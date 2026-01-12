@@ -2,7 +2,46 @@ import streamlit as st
 import pandas as pd
 import math
 import html
+import os
+import re
 
+
+# ---------------------------------------------------------
+# COVER ART HELPERS
+# ---------------------------------------------------------
+
+def normalise_filename(artist, title):
+    """
+    Convert artist + title into a safe, predictable filename.
+    Example:
+        "A Flock Of Seagulls", "Telecommunication"
+        → "a_flock_of_seagulls_telecommunication"
+    """
+    text = f"{artist}_{title}".lower()
+    text = re.sub(r"[^a-z0-9]+", "_", text)   # replace non-alphanumerics
+    text = re.sub(r"_+", "_", text).strip("_")  # collapse underscores
+    return text
+
+
+def find_cover_image(artist, title, base_path="assets/covers"):
+    """
+    Look for a matching cover image in the assets/covers directory.
+    Supports jpg, jpeg, png, webp.
+    Returns a file path or None.
+    """
+    base = normalise_filename(artist, title)
+
+    for ext in ["jpg", "jpeg", "png", "webp"]:
+        path = os.path.join(base_path, f"{base}.{ext}")
+        if os.path.exists(path):
+            return path
+
+    return None
+
+
+# ---------------------------------------------------------
+# TABLE VIEW
+# ---------------------------------------------------------
 
 def show_table(df: pd.DataFrame):
     """
@@ -14,6 +53,10 @@ def show_table(df: pd.DataFrame):
         hide_index=True
     )
 
+
+# ---------------------------------------------------------
+# CARD VIEW
+# ---------------------------------------------------------
 
 def show_cards(df: pd.DataFrame):
     """
@@ -49,21 +92,44 @@ def show_cards(df: pd.DataFrame):
                 )
 
 
+# ---------------------------------------------------------
+# CARD HTML BUILDER (WITH COVER ART)
+# ---------------------------------------------------------
+
 def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
-    import html
+    """
+    Build a modern card with:
+    - Accent colour strip
+    - Soft background
+    - Hover-lift animation (CSS class: record-card)
+    - HTML escaping for all text fields
+    - Optional cover art if available
+    """
 
     # Escape text
-    artist = html.escape(str(artist))
-    title = html.escape(str(title))
-    format_ = html.escape(str(format_))
-    genre = html.escape(str(genre))
-    year = html.escape(str(year))
-    label = html.escape(str(label))
-    rating = html.escape(str(rating))
+    artist_esc = html.escape(str(artist))
+    title_esc = html.escape(str(title))
+    format_esc = html.escape(str(format_))
+    genre_esc = html.escape(str(genre))
+    year_esc = html.escape(str(year))
+    label_esc = html.escape(str(label))
+    rating_esc = html.escape(str(rating))
+
+    # Try to find cover art
+    cover_path = find_cover_image(artist, title)
+    cover_html = ""
+    if cover_path:
+        cover_html = f"""
+<img src="file://{cover_path}" style="
+    width: 100%;
+    border-radius: 6px;
+    margin-bottom: 10px;
+">
+"""
 
     rating_str = (
-        f"<div style='margin-top:6px; font-size:0.9em; color:#e67e22;'>Rating: {rating}</div>"
-        if rating not in ("", None, "nan")
+        f"<div style='margin-top:6px; font-size:0.9em; color:#e67e22;'>Rating: {rating_esc}</div>"
+        if rating_esc not in ("", None, "nan")
         else ""
     )
 
@@ -78,22 +144,25 @@ background-color: #fff8f0;
 box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 min-height: 130px;
 ">
+
+{cover_html}
+
 <div style="font-weight: 600; font-size: 1.1em; margin-bottom: 4px;">
-    {artist}
+    {artist_esc}
 </div>
 
 <div style="font-weight: 500; margin-bottom: 6px;">
-    {title}
+    {title_esc}
 </div>
 
 <div style="font-size: 0.9em; color: #555;">
-    {format_} • {genre} • {year}
+    {format_esc} • {genre_esc} • {year_esc}
 </div>
 
 <div style="font-size: 0.85em; color: #777; margin-top: 4px;">
-    {label}
+    {label_esc}
 </div>
 
 {rating_str}
-</div>"""
 
+</div>"""
