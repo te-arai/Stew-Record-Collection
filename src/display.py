@@ -121,6 +121,7 @@ def _build_card_html(artist, title, format_, genre, year, label, rating) -> str:
 
     # Try to find cover art
     cover_path = find_cover_image(artist, title)
+    # DEBUG — print the resolved path to your terminal print("DEBUG COVER PATH:", cover_path)
     cover_html = ""
     if cover_path:
         cover_html = f"""
