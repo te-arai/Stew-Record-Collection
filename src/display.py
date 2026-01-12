@@ -141,3 +141,21 @@ min-height: 130px;
 {cover_html}
 
 <div style="font-weight: 600; font-size: 1.1em; margin-bottom: 4px;">
+    {artist_esc}
+</div>
+
+<div style="font-weight: 500; margin-bottom: 6px;">
+    {title_esc}
+</div>
+
+<div style="font-size: 0.9em; color: #555;">
+    {format_esc} • {genre_esc} • {year_esc}
+</div>
+
+<div style="font-size: 0.85em; color: #777; margin-top: 4px;">
+    {label_esc}
+</div>
+
+{rating_str}
+
+</div>"""
